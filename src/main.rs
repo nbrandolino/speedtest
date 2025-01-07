@@ -1,7 +1,7 @@
 use reqwest::Client;
 use std::time::Instant;
 use tokio::runtime::Runtime;
-use clap::{Arg, Command, ArgAction};
+use clap::{Command};
 
 const TEST_URL: &str = "http://ipv4.download.thinkbroadband.com/100MB.zip";
 
@@ -34,15 +34,15 @@ async fn measure_download_speed(url: &str) -> Result<f64, reqwest::Error> {
 
 // main function
 fn main() {
-    let matches = Command::new("speedtest")
-        .version("1.0")
-        .about("Measures the download speed from a given URL")
+    let _matches = Command::new("speedtest")
+        .version("1.1")
+        .about("Measures internet speed")
         .get_matches();
 
 
     let runtime = Runtime::new().unwrap();
 
-    println!("Running internet speed test...");
+    println!("Running Internet Speed Test...");
 
     match runtime.block_on(measure_download_speed(TEST_URL)) {
         Ok(speed) => println!("Download Speed: {:.2} Mbps", speed),
