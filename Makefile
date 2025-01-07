@@ -1,21 +1,22 @@
-CARGO := cargo
-TARGET := target/release/speedtest
+TARGET = target/release/speedtest
+BIN = speedtest
 DESTDIR = /usr/bin/
 
-all: release
-release:
-	$(CARGO) build --release
-run: release
+all:
+	@echo "Makefile commands:"
+	@echo "  make build      - Build the project"
+	@echo "  make run        - Run the project"
+	@echo "  make clean      - Clean the build artifacts"
+	@echo "  make install    - Install the binary"
+	@echo "  make uninstall  - Uninstall the binary"
+build:
+	@cargo build --release
+run:
 	$(TARGET)
-install: release
-	install -Dm755 $(TARGET) $(DESTDIR)/speedtest
 clean:
-	$(CARGO) clean
-format:
-	$(CARGO) fmt
-lint:
-	$(CARGO) clippy -- -D warnings
-test:
-	$(CARGO) test
-
-.PHONY: all release run install clean format lint test
+	@cargo clean
+	@ rm -rf Cargo.lock
+install:
+	@cp -p $(TARGET) $(DESTDIR)$(BIN)
+uninstall:
+	@rm -rf $(DESTDIR)$(TARGET)
