@@ -18,9 +18,16 @@ async fn measure_download_speed(url: &str) -> Result<f64, reqwest::Error> {
     // start the timer
     let start = Instant::now();
 
+    // variable to track the downloaded bytes
+    let mut downloaded_bytes = 0;
+
     // read the response in chunks
-    while let Some(_chunk) = response.chunk().await? {
-        // process the chunk or measure progress if needed
+    while let Some(chunk) = response.chunk().await? {
+        downloaded_bytes += chunk.len();
+        if content_length > 0 {
+            let progress = (downloaded_bytes as f64 / content_length as f64) * 100.0;
+            println!("Download Progress: {:.2}%", progress);
+        }
     }
 
     // calculate elapsed time
@@ -35,10 +42,9 @@ async fn measure_download_speed(url: &str) -> Result<f64, reqwest::Error> {
 // main function
 fn main() {
     let _matches = Command::new("speedtest")
-        .version("1.1.1")
+        .version("1.2.0")
         .about("Measures internet speed")
         .get_matches();
-
 
     let runtime = Runtime::new().unwrap();
 
