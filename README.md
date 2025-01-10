@@ -33,6 +33,9 @@ make build
 make install
 ```
 
+## Additional Information
+- The download URL can be changed to anything
+
 ## License
 This tool is licensed under the GNU General Public License (GPL). See ./LICENSE for more details.
 
