@@ -3,13 +3,16 @@ use std::time::Instant;
 use clap::{Command};
 use serde::Deserialize;
 
-// urls to data to download and ipinfo for isp information
+// urls to data to download and ipinfo for isp and location information
 const TEST_URL: &str = "http://ipv4.download.thinkbroadband.com/200MB.zip";
 const ISP_INFO_URL: &str = "http://ipinfo.io/json";
+const LOCATION_INFO_URL: &str = "http://ipinfo.io/json";  // You can adjust this URL if needed
 
 #[derive(Deserialize)]
 struct IpInfo {
     org: Option<String>,
+    city: Option<String>,
+    region: Option<String>,
 }
 
 async fn get_isp_info() -> Result<String, reqwest::Error> {
@@ -18,6 +21,18 @@ async fn get_isp_info() -> Result<String, reqwest::Error> {
     let ip_info: IpInfo = response.json().await?;
     // return ISP or "Unknown"
     Ok(ip_info.org.unwrap_or_else(|| "Unknown".to_string()))
+}
+
+async fn get_geographical_location() -> Result<String, reqwest::Error> {
+    let client = Client::new();
+    let response = client.get(LOCATION_INFO_URL).send().await?;
+    let ip_info: IpInfo = response.json().await?;
+
+    // Retrieve city, region, and country or provide "Unknown" if not available
+    let city = ip_info.city.unwrap_or_else(|| "Unknown".to_string());
+    let region = ip_info.region.unwrap_or_else(|| "Unknown".to_string());
+
+    Ok(format!("{}, {}", city, region))
 }
 
 async fn measure_download_speed(url: &str) -> Result<f64, reqwest::Error> {
@@ -58,7 +73,7 @@ async fn measure_download_speed(url: &str) -> Result<f64, reqwest::Error> {
 #[tokio::main]
 async fn main() {
     let _matches = Command::new("speedtest")
-        .version("1.3.0")
+        .version("1.4.0")
         .about("Measures internet speed")
         .get_matches();
 
@@ -66,10 +81,16 @@ async fn main() {
     println!("   Speedtest by nbrandolino");
     println!("");
 
+    // get geographical location of the server
+    match get_geographical_location().await {
+        Ok(location) => println!("      Server Location: {}", location),
+        Err(err) => eprintln!("      Error fetching server location: {}", err),
+    }
+
     // get isp information
     match get_isp_info().await {
-        Ok(isp) => println!("      ISP: {}", isp),
-        Err(err) => eprintln!("      Error fetching ISP information: {}", err),
+        Ok(isp) => println!("         ISP: {}", isp),
+        Err(err) => eprintln!("         Error fetching ISP information: {}", err),
     }
 
     // measure download speed
