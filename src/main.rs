@@ -1,9 +1,24 @@
 use reqwest::Client;
 use std::time::Instant;
-use tokio::runtime::Runtime;
 use clap::{Command};
+use serde::Deserialize;
 
+// urls to data to download and ipinfo for isp information
 const TEST_URL: &str = "http://ipv4.download.thinkbroadband.com/200MB.zip";
+const ISP_INFO_URL: &str = "http://ipinfo.io/json";
+
+#[derive(Deserialize)]
+struct IpInfo {
+    org: Option<String>,
+}
+
+async fn get_isp_info() -> Result<String, reqwest::Error> {
+    let client = Client::new();
+    let response = client.get(ISP_INFO_URL).send().await?;
+    let ip_info: IpInfo = response.json().await?;
+    // return ISP or "Unknown"
+    Ok(ip_info.org.unwrap_or_else(|| "Unknown".to_string()))
+}
 
 async fn measure_download_speed(url: &str) -> Result<f64, reqwest::Error> {
     let client = Client::builder()
@@ -26,7 +41,7 @@ async fn measure_download_speed(url: &str) -> Result<f64, reqwest::Error> {
         downloaded_bytes += chunk.len();
         if content_length > 0 {
             let progress = (downloaded_bytes as f64 / content_length as f64) * 100.0;
-            println!("Download Progress: {:.2}%", progress);
+            println!("      Download Progress: {:.2}%", progress);
         }
     }
 
@@ -39,19 +54,27 @@ async fn measure_download_speed(url: &str) -> Result<f64, reqwest::Error> {
     Ok(speed_mbps)
 }
 
-// main function
-fn main() {
+// automatically set up the runtime
+#[tokio::main]
+async fn main() {
     let _matches = Command::new("speedtest")
-        .version("1.2.0")
+        .version("1.3.0")
         .about("Measures internet speed")
         .get_matches();
 
-    let runtime = Runtime::new().unwrap();
+    println!("");
+    println!("   Speedtest by nbrandolino");
+    println!("");
 
-    println!("Running Internet Speed Test...");
+    // get isp information
+    match get_isp_info().await {
+        Ok(isp) => println!("      ISP: {}", isp),
+        Err(err) => eprintln!("      Error fetching ISP information: {}", err),
+    }
 
-    match runtime.block_on(measure_download_speed(TEST_URL)) {
-        Ok(speed) => println!("Download Speed: {:.2} Mbps", speed),
-        Err(err) => eprintln!("Error measuring download speed: {}", err),
+    // measure download speed
+    match measure_download_speed(TEST_URL).await {
+        Ok(speed) => println!("      Download Speed: {:.2} Mbps", speed),
+        Err(err) => eprintln!("      Error measuring download speed: {}", err),
     }
 }
