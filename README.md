@@ -27,10 +27,10 @@ To build the project, ensure you have `rust` installed, then compile the code as
 cd ./speedtest
 ```
 ```bash
-make build
+cargo build --release
 ```
 ```bash
-make install
+cargo install --path .
 ```
 
 ## Additional Information
