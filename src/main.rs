@@ -6,7 +6,7 @@ use serde::Deserialize;
 // urls to data to download and ipinfo for isp and location information
 const TEST_URL: &str = "http://ipv4.download.thinkbroadband.com/200MB.zip";
 const ISP_INFO_URL: &str = "http://ipinfo.io/json";
-const LOCATION_INFO_URL: &str = "http://ipinfo.io/json";  // You can adjust this URL if needed
+const LOCATION_INFO_URL: &str = "http://ipinfo.io/json";
 
 #[derive(Deserialize)]
 struct IpInfo {
@@ -28,7 +28,7 @@ async fn get_geographical_location() -> Result<String, reqwest::Error> {
     let response = client.get(LOCATION_INFO_URL).send().await?;
     let ip_info: IpInfo = response.json().await?;
 
-    // Retrieve city, region, and country or provide "Unknown" if not available
+    // retrieve city and region or provide "Unknown" if not available
     let city = ip_info.city.unwrap_or_else(|| "Unknown".to_string());
     let region = ip_info.region.unwrap_or_else(|| "Unknown".to_string());
 
